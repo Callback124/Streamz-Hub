@@ -82,16 +82,8 @@ object GameDetailDialogHelper {
             dialogLayoutHowToPlay?.visibility = View.GONE
         }
 
-        val hasInGamePurchases = game.inGamePurchases?.trim()?.equals("Yes", ignoreCase = true) == true
-
-        // Dynamic Play Button Styling based on inGamePurchases ("Yes" vs "No")
-        if (hasInGamePurchases) {
-            dialogBtnPlayGame?.text = "WATCH AD & PLAY"
-            dialogBtnPlayGame?.setIconResource(R.drawable.ic_baseline_lock_24)
-        } else {
-            dialogBtnPlayGame?.text = "PLAY GAME NOW"
-            dialogBtnPlayGame?.setIconResource(R.drawable.ic_baseline_play_arrow_24)
-        }
+        dialogBtnPlayGame?.text = "PLAY GAME NOW"
+        dialogBtnPlayGame?.setIconResource(R.drawable.ic_baseline_play_arrow_24)
 
         // Play Game Click
         dialogBtnPlayGame?.setOnClickListener {
@@ -107,3 +99,4 @@ object GameDetailDialogHelper {
         dialog.show()
     }
 }
+

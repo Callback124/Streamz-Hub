@@ -21,7 +21,6 @@ import androidx.fragment.app.Fragment
 import com.facebook.shimmer.ShimmerFrameLayout
 import com.lagradost.cloudstream3.R
 import com.lagradost.cloudstream3.utils.AppContextUtils.isNetworkAvailable
-
 import androidx.navigation.fragment.findNavController
 
 class GamePlayerFragment : Fragment() {
@@ -384,3 +383,4 @@ class GamePlayerFragment : Fragment() {
         webView.visibility = View.VISIBLE
     }
 }
+

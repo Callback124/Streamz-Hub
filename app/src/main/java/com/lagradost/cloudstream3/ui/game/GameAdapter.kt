@@ -157,6 +157,8 @@ class GameAdapter(
             }
         }
 
+
+
         // Image & Shimmer
         loadingView?.visibility = View.GONE
         imageView.visibility = View.VISIBLE
