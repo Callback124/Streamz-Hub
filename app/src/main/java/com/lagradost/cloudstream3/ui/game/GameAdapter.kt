@@ -48,12 +48,13 @@ class GameAdapter(
     }
 
     override fun getItemViewType(position: Int): Int {
-        if (showFooter && position == games.size) {
+        if (showFooter && position >= games.size) {
             return VIEW_TYPE_FOOTER
         }
         // Use isFeatured flag to determine if it should be a large poster
         // unless forceNormal is true
-        return if (games[position].isFeatured && !forceNormal) {
+        val game = games.getOrNull(position) ?: return VIEW_TYPE_NORMAL
+        return if (game.isFeatured && !forceNormal) {
             VIEW_TYPE_LARGE
         } else {
             VIEW_TYPE_NORMAL
@@ -235,13 +236,19 @@ class GameAdapter(
         }
         val diffResult = DiffUtil.calculateDiff(diffCallback)
         games = newGames
-        diffResult.dispatchUpdatesTo(this)
+        // dispatchUpdatesTo must run after calculateDiff; using try/catch to guard
+        // against the rare "Inconsistency detected" edge case during rapid updates
+        try {
+            diffResult.dispatchUpdatesTo(this)
+        } catch (e: IndexOutOfBoundsException) {
+            notifyDataSetChanged()
+        }
     }
 
     companion object {
-        private const val VIEW_TYPE_NORMAL = 0
-        private const val VIEW_TYPE_LARGE = 1
-        private const val VIEW_TYPE_FOOTER = 2
+        const val VIEW_TYPE_NORMAL = 0
+        const val VIEW_TYPE_LARGE = 1
+        const val VIEW_TYPE_FOOTER = 2
 
         fun vibrateDevice(context: Context) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {

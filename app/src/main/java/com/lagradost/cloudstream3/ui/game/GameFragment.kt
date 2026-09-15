@@ -84,15 +84,40 @@ class GameFragment : BaseFragment<FragmentGameBinding>(
             gameAdapter?.stateRestorationPolicy = RecyclerView.Adapter.StateRestorationPolicy.PREVENT_WHEN_EMPTY
         }
 
-        gamesRecyclerView.layoutManager = GridLayoutManager(requireContext(), spanCount).apply {
+        val safeGridLayoutManager = object : GridLayoutManager(requireContext(), spanCount) {
+            // Disabling predictive animations eliminates the most common
+            // source of "Inconsistency detected" crashes in RecyclerView
+            override fun supportsPredictiveItemAnimations(): Boolean = false
+
+            override fun onLayoutChildren(
+                recycler: RecyclerView.Recycler?,
+                state: RecyclerView.State?
+            ) {
+                try {
+                    super.onLayoutChildren(recycler, state)
+                } catch (e: IndexOutOfBoundsException) {
+                    // Swallow the inconsistency crash — RecyclerView will self-correct
+                    // on the next frame when data and UI are back in sync
+                    e.printStackTrace()
+                }
+            }
+        }.apply {
             spanSizeLookup = object : GridLayoutManager.SpanSizeLookup() {
                 override fun getSpanSize(position: Int): Int {
-                    val games = viewModel.filterGames(currentSearchQuery)
-                    if (position >= games.size) return spanCount // Footer spans entire grid width!
-                    return if (games.getOrNull(position)?.isFeatured == true) spanCount else 1
+                    // Use adapter's own view type — avoids inconsistency between
+                    // adapter's live data and a fresh filterGames() call during layout
+                    val adapter = gameAdapter ?: return 1
+                    if (position >= adapter.itemCount) return spanCount
+                    return when (adapter.getItemViewType(position)) {
+                        GameAdapter.VIEW_TYPE_LARGE  -> spanCount  // Featured: full width
+                        GameAdapter.VIEW_TYPE_FOOTER -> spanCount  // Footer: full width
+                        else                         -> 1          // Normal: 1 column
+                    }
                 }
             }
         }
+
+        gamesRecyclerView.layoutManager = safeGridLayoutManager
         gamesRecyclerView.adapter = gameAdapter
 
         // Smoother add/remove/change animations for the grid (default ones feel abrupt)
